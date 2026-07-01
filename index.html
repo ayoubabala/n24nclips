@@ -80,8 +80,9 @@
     flex-direction:column;
   }
   #scareFace {
-    font-size:min(60vw, 500px);
-    line-height:1;
+    width:100%;
+    height:100%;
+    object-fit:cover;
     filter: drop-shadow(0 0 60px red);
   }
   .shake { animation: shake 0.06s infinite; }
@@ -128,7 +129,8 @@
   </div>
 
   <div id="scare">
-    <div id="scareFace">👹</div>
+    <img id="scareFace" src="scare.gif" alt="">
+    <audio id="scareSound" src="scare.mp3" preload="auto"></audio>
   </div>
 
   <div id="aftermath">
@@ -146,7 +148,7 @@
   const scareFace = document.getElementById('scareFace');
   const aftermath = document.getElementById('aftermath');
 
-  let audioCtx;
+  const scareSound = document.getElementById('scareSound');
 
   function requestFS() {
     const el = document.documentElement;
@@ -154,38 +156,7 @@
     if (req) { req.call(el).catch(()=>{}); }
   }
 
-  // Loud horror stinger: noise burst + falling dissonant tone
-  function playScareSound() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const now = audioCtx.currentTime;
-
-    const bufferSize = audioCtx.sampleRate * 1.2;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i=0; i<bufferSize; i++) data[i] = (Math.random()*2-1);
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    const noiseGain = audioCtx.createGain();
-    noiseGain.gain.setValueAtTime(1.0, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 1.1);
-    noise.connect(noiseGain); noiseGain.connect(audioCtx.destination);
-    noise.start(now); noise.stop(now + 1.2);
-
-    [110, 116, 60].forEach((freq, idx) => {
-      const osc = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      osc.type = idx === 2 ? 'sawtooth' : 'square';
-      osc.frequency.setValueAtTime(freq * 4, now);
-      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 1.0);
-      g.gain.setValueAtTime(0.35, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
-      osc.connect(g); g.connect(audioCtx.destination);
-      osc.start(now); osc.stop(now + 1.1);
-    });
-  }
-
   startOverlay.addEventListener('click', function() {
-    requestFS();
     startOverlay.style.display = 'none';
     clip.style.display = 'block';
     clip.volume = 0.12; // intentionally low so they crank their OS volume
@@ -197,13 +168,17 @@
   });
 
   nextBtn.addEventListener('click', function() {
+    requestFS(); // only go fullscreen right before the scare
     clip.style.display = 'none';
     nextBtn.style.display = 'none';
     triggerJumpscare();
   });
 
   function triggerJumpscare() {
-    playScareSound();
+    scareSound.volume = 1.0;
+    scareSound.currentTime = 0;
+    scareSound.play().catch(()=>{});
+
     scare.style.display = 'flex';
     scare.classList.add('flashred');
     scareFace.classList.add('shake');
@@ -213,7 +188,8 @@
       scare.style.display = 'none';
       aftermath.style.display = 'block';
       player.style.display = 'none';
-    }, 2600);
+      scareSound.pause();
+    }, 4000);
   }
 </script>
 </body>
