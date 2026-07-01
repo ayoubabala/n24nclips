@@ -122,7 +122,7 @@
       <div class="play-icon">▶</div>
     </div>
 
-    <!-- Replace clip.mp4 with your own video file placed in the same folder -->
+    
     <video id="clip" src="clip.mp4" playsinline controls controlsList="nofullscreen"></video>
 
     <button id="nextBtn">▶ Play next clip</button>
@@ -159,7 +159,7 @@
   startOverlay.addEventListener('click', function() {
     startOverlay.style.display = 'none';
     clip.style.display = 'block';
-    clip.volume = 0.12; // intentionally low so they crank their OS volume
+    clip.volume = 0.12;
     clip.play().catch(()=>{});
   });
 
@@ -168,7 +168,7 @@
   });
 
   nextBtn.addEventListener('click', function() {
-    requestFS(); // only go fullscreen right before the scare
+    requestFS(); 
     clip.style.display = 'none';
     nextBtn.style.display = 'none';
     triggerJumpscare();
