@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funny Cats Compilation 2026 - Try Not To Laugh 😹</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body {
+    width:100%; height:100%; overflow:hidden;
+    background:#0b0b0b; font-family: Arial, Helvetica, sans-serif;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- Landing "video player" ---------- */
+  #player {
+    width:min(90vw, 800px);
+    aspect-ratio:16/9;
+    background:#000;
+    border-radius:10px;
+    position:relative;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 40px rgba(0,0,0,0.6);
+    overflow:hidden;
+  }
+
+  /* thumbnail / play button overlay */
+  #startOverlay {
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, #1e1e1e, #2a2a2a);
+    cursor:pointer;
+    z-index:2;
+  }
+  .play-icon {
+    font-size:70px; color:#fff;
+    background:rgba(255,255,255,0.15);
+    border-radius:50%;
+    width:110px; height:110px;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .15s ease;
+  }
+  #startOverlay:hover .play-icon { transform:scale(1.08); }
+
+  /* real video element */
+  #clip {
+    width:100%; height:100%;
+    object-fit:cover;
+    background:#000;
+    display:none;
+  }
+
+  /* ---------- "Play next clip" button ---------- */
+  #nextBtn {
+    display:none;
+    position:absolute;
+    bottom:24px; right:24px;
+    background:rgba(20,20,20,0.85);
+    color:#fff;
+    border:2px solid rgba(255,255,255,0.4);
+    border-radius:30px;
+    padding:12px 20px;
+    font-size:16px;
+    cursor:pointer;
+    animation:pulse 1.1s ease-in-out infinite;
+    z-index:5;
+  }
+  @keyframes pulse {
+    0%,100% { transform:scale(1); }
+    50% { transform:scale(1.08); }
+  }
+
+  /* ---------- Jumpscare overlay ---------- */
+  #scare {
+    display:none;
+    position:fixed; inset:0;
+    background:#000;
+    z-index:999;
+    align-items:center; justify-content:center;
+    flex-direction:column;
+  }
+  #scareFace {
+    font-size:min(60vw, 500px);
+    line-height:1;
+    filter: drop-shadow(0 0 60px red);
+  }
+  .shake { animation: shake 0.06s infinite; }
+  @keyframes shake {
+    0% { transform: translate(0,0) rotate(0deg); }
+    25% { transform: translate(-14px, 10px) rotate(-2deg); }
+    50% { transform: translate(12px, -14px) rotate(2deg); }
+    75% { transform: translate(-10px, -8px) rotate(-1deg); }
+    100% { transform: translate(8px, 12px) rotate(1deg); }
+  }
+  .flashred { animation: flashred 0.12s infinite; }
+  @keyframes flashred {
+    0%,100% { background:#000; }
+    50% { background:#8b0000; }
+  }
+
+  /* ---------- Aftermath ---------- */
+  #aftermath {
+    display:none;
+    color:#fff; text-align:center;
+  }
+  #aftermath h1 { font-size:48px; margin-bottom:10px; }
+  #aftermath button {
+    margin-top:20px;
+    padding:12px 24px;
+    font-size:16px;
+    border-radius:8px;
+    border:none;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+  <div id="player">
+    <div id="startOverlay">
+      <div class="play-icon">▶</div>
+    </div>
+
+    <!-- Replace clip.mp4 with your own video file placed in the same folder -->
+    <video id="clip" src="clip.mp4" playsinline></video>
+
+    <button id="nextBtn">▶ Play next clip</button>
+  </div>
+
+  <div id="scare">
+    <div id="scareFace">👹</div>
+  </div>
+
+  <div id="aftermath">
+    <h1>😈 GOTCHA! 😈</h1>
+    <p>You just got jumpscared.</p>
+    <button onclick="location.reload()">Do it again</button>
+  </div>
+
+<script>
+  const player = document.getElementById('player');
+  const startOverlay = document.getElementById('startOverlay');
+  const clip = document.getElementById('clip');
+  const nextBtn = document.getElementById('nextBtn');
+  const scare = document.getElementById('scare');
+  const scareFace = document.getElementById('scareFace');
+  const aftermath = document.getElementById('aftermath');
+
+  let audioCtx;
+
+  function requestFS() {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+    if (req) { req.call(el).catch(()=>{}); }
+  }
+
+  // Loud horror stinger: noise burst + falling dissonant tone
+  function playScareSound() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+
+    const bufferSize = audioCtx.sampleRate * 1.2;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i=0; i<bufferSize; i++) data[i] = (Math.random()*2-1);
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(1.0, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 1.1);
+    noise.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+    noise.start(now); noise.stop(now + 1.2);
+
+    [110, 116, 60].forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = idx === 2 ? 'sawtooth' : 'square';
+      osc.frequency.setValueAtTime(freq * 4, now);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.5, now + 1.0);
+      g.gain.setValueAtTime(0.35, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 1.1);
+    });
+  }
+
+  startOverlay.addEventListener('click', function() {
+    requestFS();
+    startOverlay.style.display = 'none';
+    clip.style.display = 'block';
+    clip.volume = 0.12; // intentionally low so they crank their OS volume
+    clip.play().catch(()=>{});
+  });
+
+  clip.addEventListener('ended', function() {
+    nextBtn.style.display = 'block';
+  });
+
+  nextBtn.addEventListener('click', function() {
+    clip.style.display = 'none';
+    nextBtn.style.display = 'none';
+    triggerJumpscare();
+  });
+
+  function triggerJumpscare() {
+    playScareSound();
+    scare.style.display = 'flex';
+    scare.classList.add('flashred');
+    scareFace.classList.add('shake');
+    if (navigator.vibrate) navigator.vibrate([200,100,200,100,400]);
+
+    setTimeout(() => {
+      scare.style.display = 'none';
+      aftermath.style.display = 'block';
+      player.style.display = 'none';
+    }, 2600);
+  }
+</script>
+</body>
+</html>
